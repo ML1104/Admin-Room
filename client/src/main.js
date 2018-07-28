@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import VueRouter from 'vue-router'
+import Add from './components/Add.vue'
 
 Vue.use(VueRouter)
 
@@ -8,8 +9,8 @@ Vue.config.productionTip = false
 
 const routes = [
   {
-    path: '/edit', component: 'Edit'
-  },
+    path: 'add', component: Add
+  }
 ]
 
 const router = new VueRouter({

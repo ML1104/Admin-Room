@@ -1,19 +1,24 @@
 <template>
   <div id="app">
     <p v-if="error" class="error">Couldn't load articles</p>
+    <router-link to="/add"><button>Add New Article</button></router-link>
+    <router-view @addNew="addArticle"></router-view>
     <table>
       <tr>
+        <th>id</th>
         <th>title</th>
         <th>category</th>
         <th>author</th>
+        <th>options</th>
       </tr>
-      <Article v-for="row in db" :key="row.id" :article="row"></Article>
+      <Article @delete="deleteArticle" v-for="row in db" :key="row.id" :article="row"></Article>
     </table>
   </div>
 </template>
 
 <script>
 import Article from './components/Article.vue'
+
 export default {
   name: 'app',
   components: {
@@ -23,7 +28,7 @@ export default {
     return {
       error: true,
       socket: "",
-      db: {}
+      db: []
     }
   },
   mounted() {
@@ -35,18 +40,45 @@ export default {
   },
   methods: {
     socketError(message) {
+      // eslint-disable-next-line
       console.log('Error message:', message);
     },
     socketOpen(message) {
+      // eslint-disable-next-line
       console.log('On open message:', message);
     },
     socketClose(message) {
+      // eslint-disable-next-line
       console.log('On close message:', message);
     },
     socketMessage(message) {
+      // eslint-disable-next-line
       console.log("Message is here");
-      this.db = JSON.parse(message.data);
-      this.error = false;
+      let response = JSON.parse(message.data);
+      if (response.type == 'db') {
+        this.db = response.data;
+        this.error = false;
+      } 
+      
+    },
+    addArticle(info) {
+        let addition = {
+          type: 'add',
+          data: JSON.stringify(info)
+        }
+        this.socket.send(JSON.stringify(addition));
+    },
+    deleteArticle(index) {
+      this.db.forEach((el, key) => {
+        if (el.id === index) {
+          this.db.splice(key, 1);
+        }
+      });
+      let deletion = {
+        type: 'deletion',
+        data: index
+      }
+      this.socket.send(JSON.stringify(deletion));
     }
   }
 }

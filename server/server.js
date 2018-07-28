@@ -17,20 +17,33 @@ server.on('connection', function(client) {
 
     connection.query('SELECT * FROM articles', function (error, results, fields) {
         if (error) throw error;
-        console.log(results);
-        client.send(JSON.stringify(results));
+        let db = {
+            type: "db",
+            data: results
+        }
+        client.send(JSON.stringify(db));
       });
 
     client.on('close', function(ws) {
         console.log('User has left');
-
-        connection.end();
     })
 
-    client.on('message', function incoming(data) {
+    client.on('message', function incoming(message) {
         server.clients.forEach(function each(client) {
             if (client !== ws && client.readyState === ws.OPEN) {
-              client.send(data);
+                let response = JSON.parse(message);
+              if (response.type == "deletion") {
+                  console.log(response);
+                  connection.query('DELETE FROM articles WHERE id=' + response.data, function (error, result, fields) {
+                    if (error) throw error;
+                  });
+              }
+              if (response.type = "add") {
+                  let properties = JSON.parse(response.data);
+                  connection.query('INSERT INTO articles SET author="' + properties.author + '", category="' + properties.category + '", title="' + properties.title + '"', function (error, result, fields) {
+                    if (error) throw error;
+                  });
+              }
             }
         });
     })
